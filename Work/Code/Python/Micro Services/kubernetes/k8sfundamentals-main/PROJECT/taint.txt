@@ -1,0 +1,3 @@
+**PODLAR OLUŞTURULURKEN İLGİLİ TANIM VARSA BU PODLAR GEREKSİNİMİ KARŞILAYAN PODLARDA OLUŞABİLECEK**
+kubectl taint node <node-name> tier=production:NoSchedule
+kubectl label node <node-name> tier=production

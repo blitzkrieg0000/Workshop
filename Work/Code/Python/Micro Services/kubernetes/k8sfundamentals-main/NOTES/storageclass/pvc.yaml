@@ -1,0 +1,13 @@
+# StorageClass ımızı PVC ye bağlıyoruz ki PV üretebilsin.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysqlclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: "standarddisk"

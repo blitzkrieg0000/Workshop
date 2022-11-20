@@ -1,0 +1,17 @@
+# Storage cihazlarının içerisindeki yapıyı kullanarak volume oluşturmak için kullanılırlar.
+# PV lerde istediğimiz storage miktarını vb. belirtiriz.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+   name: mysqlpv
+   labels:
+     app: mysql
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Recycle
+  nfs:
+    path: /
+    server: 192.168.1.117:2049

@@ -1,0 +1,14 @@
+syntax = "proto3";
+package SamplePackage;
+
+service ManagerService {
+    rpc SampleProcess(stream ManagerServiceRequest) returns (stream ManagerServiceResponse) {}
+}
+
+message ManagerServiceRequest {
+    string data = 1;
+}
+
+message ManagerServiceResponse {
+    string data = 1;
+}

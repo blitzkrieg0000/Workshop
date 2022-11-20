@@ -1,0 +1,45 @@
+#Typo Hatası
+apiVersion: v1
+kind: Pod
+metadata:
+  name: imageerrorpod
+spec:
+  containers:
+  - name: imageerrorcontainer
+    image: enignx
+---
+#İşini Yapıp Bitiren Bir Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: succeededpod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: succeedcontainer
+    image: ubuntu:latest
+    command: ['sh', '-c', 'echo "Hello, Kubernetes!" && sleep 20']
+---
+#Fail Olarak İşaretlenen Bir Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: failedpod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: failcontainer
+    image: ubuntu:latest
+    command: ['sh', '-c', 'abc']
+---
+#Sürekli Yeniden Başlayan Bir Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloopbackpod
+spec:
+  restartPolicy: Always
+  containers:
+  - name: crashloopbackcontainer
+    image: ubuntu:latest
+    command: ['sh', '-c', 'echo "Hello, Kubernetes!" && sleep 20']

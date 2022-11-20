@@ -1,0 +1,16 @@
+#PVC ler önceden oluşturulan PV leri kullanmak için olan yapılardır.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysqlclaim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ""
+  selector:
+    matchLabels:
+      app: mysql

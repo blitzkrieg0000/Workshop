@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kqsldbclideployment
+  labels:
+    team: development
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kqsldbcli
+  template:
+    metadata:
+      labels:
+        app: kqsldbcli
+    spec:
+      containers:
+      - name: kqsldbcli
+        image: confluentinc/cp-ksqldb-cli:7.1.1
+        command: ["/bin/sh"]
+        ports:
+          - containerPort: 8082
+        envFrom:
+        - configMapRef:
+            name: ksqldbclienv
+        

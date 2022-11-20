@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ksqldbserverpool
+spec:
+  clusterIP: None
+  selector:
+    app: ksqldbserver
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8088
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ksqldbserverdeployment
+  labels:
+    team: development
+spec:
+  serviceName: schemapool
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ksqldbserver
+  template:
+    metadata:
+      labels:
+        app: ksqldbserver
+    spec:
+      containers:
+      - name: ksqldbserver
+        image: confluentinc/cp-ksqldb-server:7.1.1
+        ports:
+          - containerPort: 8088
+        envFrom:
+        - configMapRef:
+            name: ksqldbserverenv
+        volumeMounts:
+        - name: ksqldbserverdataclaim
+          mountPath: /data
+          subPath: ksqldbserver.data
+  volumeClaimTemplates:
+  - metadata:
+      name: ksqldbserverdataclaim
+    spec:
+      accessModes: ["ReadWriteMany"]
+      storageClassName: nfs-client
+      resources:
+        requests:
+          storage: 1Gi

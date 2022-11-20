@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: restproxypool
+spec:
+  clusterIP: None
+  selector:
+    app: restproxy
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: restproxydeployment
+  labels:
+    team: development
+spec:
+  serviceName: schemapool
+  replicas: 1
+  selector:
+    matchLabels:
+      app: restproxy
+  template:
+    metadata:
+      labels:
+        app: restproxy
+    spec:
+      containers:
+      - name: restproxy
+        image: confluentinc/cp-kafka-rest:7.1.1
+        ports:
+          - containerPort: 8082
+        envFrom:
+        - configMapRef:
+            name: restproxyenv
+        volumeMounts:
+        - name: restproxydataclaim
+          mountPath: /data
+          subPath: restproxy.data
+  volumeClaimTemplates:
+  - metadata:
+      name: restproxydataclaim
+    spec:
+      accessModes: ["ReadWriteMany"]
+      storageClassName: nfs-client
+      resources:
+        requests:
+          storage: 1Gi

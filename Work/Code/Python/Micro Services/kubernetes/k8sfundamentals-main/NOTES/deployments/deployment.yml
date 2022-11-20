@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firstdeployment
+  labels:
+    team: development
+spec:
+  replicas: 3
+  #SELECTOR İLE ÜZERİNDE İŞLEM YAPILACAK TEMPLATE NODELARINI BELİRTMEMİZ GEREKİYOR.(KURAL)
+  # app=frontend labelı seçiliyor
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    # Normal bir pod tanımı gibi ama "apiVersion", "kind" başlıklarını ve podun "name" ini yazmıyoruz.
+    # Deployment objesi, podlara rastgele isimler verecektir.
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80

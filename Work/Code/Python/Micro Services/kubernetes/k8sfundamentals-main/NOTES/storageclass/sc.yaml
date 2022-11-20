@@ -1,0 +1,15 @@
+# StorageClass lar PVC ye göre PV leri dinamik olarak oluşturan ve böylece hayatımızı kolaylaştıran yapılardır.
+# Bu yapılar Azure, Google, AWS gibi cloudlarda kullanılabilir objelerdir.
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standarddisk
+parameters:
+  type: pd-ssd
+  fstype: ext4
+  replication-type: none
+provisioner: pd.csi.storage.gke.io
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: envpod
+  labels:
+    app: frontend
+spec:
+  containers:
+  - name: envpod
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+
+    # Container içerisine bilgi eklemek için kullanılır. 
+    # "name=value" şeklinde environment değişkenleri atamak için kullanılır.
+    env:
+      - name: USER
+        value: "blitzkrieg"
+      - name: database
+        value: "testdb.example.com"

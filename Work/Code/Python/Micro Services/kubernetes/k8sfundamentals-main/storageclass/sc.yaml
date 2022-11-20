@@ -1,0 +1,25 @@
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: standarddisk
+# parameters:
+#   cachingmode: ReadOnly
+#   kind: Managed
+#   storageaccounttype: StandardSSD_LRS
+# provisioner: kubernetes.io/azure-disk
+# reclaimPolicy: Delete
+# volumeBindingMode: WaitForFirstConsumer
+
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standarddisk
+parameters:
+  type: pd-ssd
+  fstype: ext4
+  replication-type: none
+provisioner: pd.csi.storage.gke.io
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+reclaimPolicy: Delete

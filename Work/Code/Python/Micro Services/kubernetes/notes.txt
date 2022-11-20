@@ -1,0 +1,16 @@
+#NETWORK PROBLEM SOLUTION
+echo "nameserver 8.8.8.8" | tee /etc/resolv.conf > /dev/null
+
+#DEFAULT /etc/resolv.conf
+search default.svc.cluster.local svc.cluster.local cluster.local
+nameserver 10.96.0.10
+options ndots:5
+
+#NET-TOOLS
+apt-get install nano net-tools dnsutils iputils-ping
+
+#DELETE PODS
+kubectl get pod -n <NAMESPACE> | grep Evicted | awk '{print $1}' | xargs kubectl delete pod -n <NAMESPACE>
+ContainerStatusUnknown
+kubectl get pod -n ContainerStatusUnknown | grep Evicted | awk '{print $1}' | xargs kubectl delete pod -n ContainerStatusUnknown
+

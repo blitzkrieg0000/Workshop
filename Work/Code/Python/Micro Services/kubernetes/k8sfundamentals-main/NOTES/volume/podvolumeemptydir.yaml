@@ -1,0 +1,40 @@
+# Volumeler 2 çeşittir.
+# 1-) Ephemeral volumeler: Nodeların içerisinde oluşturulurlar. Aynı pod içerisindeki iki containerın veri paylaşması için kullanılabilirler.
+    #Podların yaşam süresi boyunca hayatta kalırlar ve Ephemeral volumeler 2.çeşittir:
+      #i-emptyDir: Boş bir klasör olarak yaratılırlar.
+      #ii-hostPad, podun oluşacağı worker node üzerindeki bir path in konumunu kullanarak yaratılır. 
+
+# 2-) Persistent Volumes: Worker node dışında depolama mekanizması kullanarak podlar silinse dahi kalıcıdırlar... (PV-PVC-StorageClass kısmında ayrıntılanacaktır.)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: emptydir
+spec:
+  containers:
+  - name: frontend
+    image: ozgurozturknet/k8s:blue
+    ports:
+    - containerPort: 80
+    livenessProbe:
+      httpGet:
+        path: /healthcheck
+        port: 80
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    volumeMounts:
+    - name: cache-vol
+      mountPath: /cache
+
+  - name: sidecar
+    image: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 3600"]
+    volumeMounts:
+    - name: cache-vol
+      mountPath: /tmp/log
+
+  #EmptyDir - Ephemeral Volume -> "/cache" ve "/tmp/log" aynı konuma bağlanmıştır.
+  volumes:
+  - name: cache-vol
+    emptyDir: {}
+  

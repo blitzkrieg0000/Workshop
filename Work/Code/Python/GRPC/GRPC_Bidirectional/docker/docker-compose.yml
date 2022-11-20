@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  testservice:
+    image: testservice
+    build:
+      context: "../test"
+      dockerfile: dockerfile
+
+    hostname: testservice
+    container_name: testservice
+    restart: always
+    networks:
+      - tennisnet
+    ports:
+      - "60051:60051"
+
+networks:
+  tennisnet:
+    driver: bridge

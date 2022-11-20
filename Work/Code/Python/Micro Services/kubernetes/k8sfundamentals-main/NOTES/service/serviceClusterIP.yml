@@ -1,0 +1,14 @@
+# kubectl expose deployment <deploymentName> --type=ClusterIP --name=<deploymentName>
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  # Servisin tipi: "ClusterIP", "LoadBalancer", "NodePort"
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

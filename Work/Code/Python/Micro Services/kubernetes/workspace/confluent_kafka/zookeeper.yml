@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeperpool
+spec:
+  clusterIP: None
+  selector:
+    app: zookeeper
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 2181
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zookeeperdeployment
+  labels:
+    team: development
+spec:
+  serviceName: zookeeperpool
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zookeeper
+  template:
+    metadata:
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+      - name: zookeeper
+        image: confluentinc/cp-zookeeper:7.1.1
+        ports:
+          - containerPort: 2181
+        envFrom:
+        - configMapRef:
+            name: zookeeperenv
+        volumeMounts:
+        - name: zookeeperdataclaim
+          mountPath: /var/lib/zookeeper/data
+          subPath: zookeeper.data
+        - name: zookeeperdataclaim
+          mountPath: /var/lib/zookeeper/log
+          subPath: zookeeper.log
+  volumeClaimTemplates:
+  - metadata:
+      name: zookeeperdataclaim
+    spec:
+      accessModes: ["ReadWriteMany"]
+      storageClassName: nfs-client
+      resources:
+        requests:
+          storage: 1Gi

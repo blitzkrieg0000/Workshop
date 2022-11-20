@@ -1,0 +1,20 @@
+#kubectl top pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: requestlimit
+  labels:
+    test: requestlimit
+spec:
+  containers:
+  - name: requestlimit
+    image: ozgurozturknet/stress
+    # CPU ve RAM kısıtlarını belirtiyoruz. Memory i M, Mi, G, Gi gibi yazabiliriz.
+    # CPU yu ise yüzdelik olarak veya "m" cinsinden belirterek kullanabiliriz.
+    resources:
+      requests:
+        memory: "64M"
+        cpu: "250m"
+      limits:
+        memory: "256M"
+        cpu: "0.5"
