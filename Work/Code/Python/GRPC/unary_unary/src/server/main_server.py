@@ -17,6 +17,7 @@ class MainService(rc_grpc.MainServicer):
     def __init__(self):
         super().__init__()
 
+
     # Hangi fonksiyonları protobuff dosyasında tanımlamışsak onları override ediyoruz.
     def Process(self, request, context):      
         
@@ -39,7 +40,6 @@ class MainService(rc_grpc.MainServicer):
 
 
 def serve():
-
     # Aynı anda maksimum yanıtlanacak istek sayısını (oluşacak threadi) belirtiyoruz. (10)
     # Unutmayalım ki orijinal c-python da GIL(GlobalInterpreterLock) olduğu için ne kadar thread üretirsek üretelim; oluşturulan 1 adet process içerisinde sadece CPU nun 1 adet core unu kullanacak.
     # Yani CPU bounding işlemlerde yeni bir sub-process üretip yolumuza devam etmemiz gerekiyor ki performans kaybı yaşamayalım.

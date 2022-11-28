@@ -11,7 +11,6 @@ logging.basicConfig(format='%(levelname)s - %(asctime)s => %(message)s', datefmt
 
 MAX_MESSAGE_LENGTH = 100*1024*1024 # 100MB
 class MainClient():
-
     def __init__(self):    # SSL vs. olmadan bir bağlantı açıyoruz. Bağlantı özelliklerini burada belirliyoruz.
         self.channel = grpc.insecure_channel('localhost:50000',
                         options=[
@@ -38,7 +37,10 @@ class MainClient():
 
 
     def disconnect(self):
+        # Kanalı kapatırsak tamamen iletişimi kesmiş oluruz.
+        # Tekrar bağlantı kurmamız gerekir.
         self.channel.close()
+
 
 
 if __name__ == "__main__":
