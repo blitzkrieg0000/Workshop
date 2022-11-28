@@ -14,7 +14,7 @@ message ProcessResponse{ // "<FonksiyonAdı>Response" adında bir response paket
 
 // Service
 service Main {                                                  // "Main" servis adı derlendiğinde buna dönüşecek -> "MainServicer".
-  rpc Process(ProcessRequest) returns (ProcessResponse) {}      // Server içine uzaktan çağırmak istediğimiz bir fonksiyonları tanımlıyoruz.
+  rpc Process(ProcessRequest) returns (ProcessResponse) {}      // Server içine uzaktan çağırmak istediğimiz fonksiyonları tanımlıyoruz.
 }                                                               // Aynı zamanda ne tipte bir request alacak ve ne tipte bir response gidecek onu belirtiyoruz.
 
 
