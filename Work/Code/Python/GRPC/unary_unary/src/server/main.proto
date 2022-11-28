@@ -1,0 +1,30 @@
+// vscode eklentisi: Plex.vscode-protolint
+syntax = "proto3"; // Kullandığımız Proto sürümünü belirtmemiz lazım.
+package main;      // Java gibi dillerde paketi belirlemek için gerekli, zorunlu değil.
+
+// Request
+message ProcessRequest {  // "<FonksiyonAdı>Request" adında bir request paketi tanımlıyoruz ve bu paketin neleri taşıyacağını belirliyoruz.
+  bytes data=1;           // Buradaki sayı atama değil. Öncelik belirtiyor. Fonksiyonun argümanları gibi
+}
+
+// Response
+message ProcessResponse{ // "<FonksiyonAdı>Response" adında bir response paketi tanımlıyoruz ve bu paketin neleri taşıyacağını belirliyoruz.
+  bytes data=1;
+}
+
+// Service
+service Main {                                                  // "Main" servis adı derlendiğinde buna dönüşecek -> "MainServicer".
+  rpc Process(ProcessRequest) returns (ProcessResponse) {}      // Server içine uzaktan çağırmak istediğimiz bir fonksiyonları tanımlıyoruz.
+}                                                               // Aynı zamanda ne tipte bir request alacak ve ne tipte bir response gidecek onu belirtiyoruz.
+
+
+// Derlemek için proto dosyasının olduğu klasörde aşağıdaki komutu çalıştırıyoruz ve 3 farklı dosya elde ediyoruz.
+// Elde edilen bu dosyalar ile client ve server kodlarımızı yazmaya hazırız -> [<ProtoDosyaAdı>_pb2.py, <ProtoDosyaAdı>_pb2_grpc.py, <ProtoDosyaAdı>_pb2.pyi]
+// python -m grpc_tools.protoc -I./ --python_out=. --pyi_out=. --grpc_python_out=. <ProtoDosyaAdı>.proto
+
+
+// NOT: Derleyici paketleri yoksa şu komutlarla kurulum yapılabilir.
+// python -m pip install --upgrade pip
+// python -m pip install grpcio-tools
+// python -m pip install grpcio
+// python -m pip install protobuf # grpcio paketi çalışmazsa gerekli olan paket. (3.20.* sürümlerinden birisinin yüklü olması gerekiyor.)
