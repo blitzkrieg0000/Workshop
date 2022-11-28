@@ -51,6 +51,7 @@ if __name__ == "__main__":
         msg = f"Test: {i}"
         logging.info(f"Gönderildi: {msg}")
         response = mainClient.Processs(msg)
-        logging.info(response.data.decode("utf-8")) 
-
+        logging.info(response.data.decode("utf-8"))
+        
+    mainClient.disconnect()
 
