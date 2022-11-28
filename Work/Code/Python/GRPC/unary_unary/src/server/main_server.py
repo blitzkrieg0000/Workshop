@@ -1,12 +1,14 @@
 import logging
-from concurrent import futures
 import time
+from concurrent import futures
 
 import grpc
-import main_pb2 as rc            # Paketlerle ilgili bilgi tutar.
+import main_pb2 as rc  # Paketlerle ilgili bilgi tutar.
 import main_pb2_grpc as rc_grpc  # Servis ile ilgili bilgi tutar.
 
 logging.basicConfig(format='%(levelname)s - %(asctime)s => %(message)s', datefmt='%d-%m-%Y %H:%M:%S', level=logging.NOTSET)
+
+
 
 MAX_MESSAGE_LENGTH = 100*1024*1024 # 100MB
 

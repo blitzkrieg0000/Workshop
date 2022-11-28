@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import logging
-import time
 
 import grpc
 import main_pb2 as rc
@@ -44,6 +43,7 @@ class MainClient():
 
 if __name__ == "__main__":
     mainClient = MainClient()
+
 
     for i in tqdm(range(10)):
         msg = f"Test: {i}"
