@@ -26,16 +26,15 @@ class MainService(rc_grpc.MainServicer):
 
         dump = f"Server Mesajı aldı: {msg}" 
         
-        # Response paketimize tekrar tanımladığımız veriyi doldurup clienta tekrar gönderiyoruz.
-        response  = rc.ProcessResponse(data=dump.encode("utf-8"))
+        # Response paketimize tekrar tanımladığımız veriyi dolduruyoruz.
+        response = rc.ProcessResponse(data=dump.encode("utf-8"))
         
-
         time.sleep(5.0)
 
         if not context.is_active():
             logging.warning("Client, server yanıtını beklemeden çıkış yapmış.")
 
-
+        # Request gelen clienta Response mesaj paketini gönderiyoruz.
         return response
 
 
