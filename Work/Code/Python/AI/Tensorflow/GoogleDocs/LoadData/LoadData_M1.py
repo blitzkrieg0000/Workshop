@@ -5,7 +5,6 @@ import pathlib
 
 import matplotlib.pyplot as plt
 import numpy as np
-import PIL.Image
 import tensorflow as tf
 import tensorflow_datasets as tfds
 

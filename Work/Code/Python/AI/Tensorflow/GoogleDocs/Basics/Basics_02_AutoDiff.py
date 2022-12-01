@@ -1,16 +1,34 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
 import tensorflow as tf
 
 
 #! Otomatik türev (Auto Differentiation)
+# Kısa Örnek
 x = tf.Variable(3.0)
 with tf.GradientTape() as tape:
     y = x**2
     dy_dx = tape.gradient(y, x)
     print(dy_dx.numpy())
 
+
+#İç içe yazılarak yüksek dereceli türev hesabı yapılabilir.
+x = tf.Variable(1.0)  # Create a Tensorflow variable initialized to 1.0
+
+#* 2-buradaki manager ise d2x/dx2 işlemi gerçekleştirmek için t1.gradient in yaptığı hesapları takip ediyor.
+with tf.GradientTape() as t2:
+
+    #* 1-içerideki bu manager dy/dx işlemini aşağıda t1.gradient fonksiyonunu çağırarak gerçekleştiriyor.
+    with tf.GradientTape() as t1:
+        y = x * x * x
+
+    # t2 ContextManager'ı t1 bandını kapsadığı için içerideki t1 değişkeni ile yapılan işlemleri, t2 takip edebilir.
+    
+    dy_dx = t1.gradient(y, x)   # T1, "y" fonksiyonunu ve "x" değişkenini izleyerek dy/dx ifadesini hesapladı.
+d2y_dx2 = t2.gradient(dy_dx, x) # T2 ise yapılan bu dy/dx işleminin de gradyanını otomatik hesapladı.
+# Sonuç olarak GradientTape ContextManager'ları iç içe çağrıldığında, içerideki manager'ın yaptığı işlemleri bir üstteki manager takip etti.
+
+print('dy_dx:', dy_dx.numpy())  # 3 * x**2 => 3.0
+print('d2y_dx2:', d2y_dx2.numpy())  # 6 * x => 6.0
 
 
 #! Tensor ile
@@ -22,12 +40,11 @@ x = [
 
 with tf.GradientTape(persistent=True) as tape:
     y = x @ w + b
-    print(y)
     loss = tf.reduce_mean(y**2)
     [dl_dw, dl_db] = tape.gradient(loss, [w, b])
     print(dl_dw)
 
-    #! dictionary şeklinde girdi verilebilir.
+    # dictionary şeklinde girdi verilebilir.
     # my_vars = {
     #     'w': w,
     #     'b': b
@@ -35,6 +52,19 @@ with tf.GradientTape(persistent=True) as tape:
     # grad = tape.gradient(loss, my_vars)
     # grad['b']
 
+
+#! Fonksiyon ile
+x = tf.Variable(1.0)
+
+def f(x):
+    y = x**2 + 2*x - 5
+    return y
+
+with tf.GradientTape() as tape:
+    y = f(x)
+
+g_x = tape.gradient(y, x)  # g(x) = dy/dx
+print("g_x: ", g_x)
 
 
 #! Tensorflow modeli ile
@@ -52,15 +82,16 @@ for var, g in zip(layer.trainable_variables, grad):
     print(f'{var.name}, shape: {g.shape}')
 
 
-
 #! GradientTape in izlediği değerler, eğitilebilir olmalıdır.
 # Eğitilebilir bir değer
 x0 = tf.Variable(3.0, name='x0')
 
 # Eğitilemez
 x1 = tf.Variable(3.0, name='x1', trainable=False)
+
 # Eğitilemez değer: A variable + tensor returns a tensor.
 x2 = tf.Variable(2.0, name='x2') + 1.0
+
 # Eğitilemez değer:
 x3 = tf.constant(3.0, name='x3')
 
@@ -71,9 +102,9 @@ with tf.GradientTape() as tape:
 print([g1, g2, g3, g4])
 
 
-
 #! Bir değişkeni izlemeye al
 x = tf.constant(3.0)
+
 with tf.GradientTape() as tape:
     tape.watch(x)
     y = x**2
@@ -81,7 +112,6 @@ with tf.GradientTape() as tape:
 # dy = 2x * dx
 dy_dx = tape.gradient(y, x)
 print("Watch: ", dy_dx.numpy())
-
 
 
 #! İzlemeyi kapat
@@ -102,7 +132,6 @@ print('dy/dx0:', grad['x0'])
 print('dy/dx1:', grad['x1'].numpy())
 
 
-
 #! Ara değerler için
 x = tf.constant(3.0)
 
@@ -113,8 +142,7 @@ with tf.GradientTape() as tape:
 
 # Ara değer y ye göre z nin gradyanı:
 # dz_dy = 2 * y and y = x ** 2 = 9
-print(tape.gradient(z, y).numpy())
-
+print("Ara değer: ", tape.gradient(z, y).numpy())
 
 
 #! Kalıcı gradient hesabı
