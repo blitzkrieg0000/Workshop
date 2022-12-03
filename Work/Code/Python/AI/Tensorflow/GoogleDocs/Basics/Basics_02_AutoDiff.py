@@ -11,7 +11,7 @@ with tf.GradientTape() as tape:
     print(dy_dx.numpy())
 
 
-#İç içe yazılarak yüksek dereceli türev hesabı yapılabilir.
+# İç içe yazılarak yüksek dereceli türev hesabı yapılabilir.
 x = tf.Variable(1.0)  # Create a Tensorflow variable initialized to 1.0
 
 #* 2-buradaki manager ise d2x/dx2 işlemi gerçekleştirmek için t1.gradient in yaptığı hesapları takip ediyor.

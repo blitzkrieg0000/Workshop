@@ -44,7 +44,7 @@ rank_3_tensor.numpy()
 
 
 #! Hatırlatma: Tensorler ile temel matematiksel işlemler yapılabilir.
-print("\nTensorler ile temel matematiksel işlemler yapılabilir.")
+print("\n=> Tensorler ile temel matematiksel işlemler yapılabilir.")
 a = tf.constant([[1, 2],
                  [3, 4]])
 
@@ -57,7 +57,7 @@ print(tf.matmul(a, b), "\n")
 
 
 #! Basic Operations
-print("\nBasic Operations")
+print("\n=> Basic Operations")
 c = tf.constant([[4.0, 5.0], [10.0, 1.0]])
 
 # Max değer
@@ -69,12 +69,13 @@ print(f"Max değerin indisi: {tf.math.argmax(c)}")
 # softmax
 print(f"Softmax {tf.nn.softmax(c)}")
 
- 
+
 #! Herhangi bir tensorflow fonksiyonu Tensor objesi gerektirir. Array'leri tensor'a çevirmek için:
 converted = tf.convert_to_tensor([1,2,3])
 
+
 #! Boyut kavramları
-print("\nBoyut kavramları")
+print("\n=> Boyut kavramları")
 # shape: Bir tensor'ün boyutudur yani her bir eksende kaç eleman barındırdığıdır: [3,1920,1080]
 # size: Bir tensor'ün her eksenindeki toplam eleman sayısıdır.
 # rank: Bir tensor'ün kaç boyutlu olduğudur.
@@ -101,7 +102,7 @@ print(f"rank_4_tensor '-1'. eleman : {rank_4_tensor.shape[-1]}")
 
 
 #! Tensor'ü yeniden boyutlandırmak
-print("\nTensor'ü yeniden boyutlandırmak")
+print("\n=> Tensor'ü yeniden boyutlandırmak")
 x = tf.constant([[1], [2], [3]])
 # shape attribute'u "list" olarak ele alınabilir.
 print(f"shape as list: {x.shape.as_list()}",)
@@ -111,9 +112,8 @@ reshaped = tf.reshape(x, [1, 3])
 print(f"reshaped: {reshaped}")
 
 
-
 #! Transpoze
-print("\nTranspoze")
+print("\n=> Transpoze")
 x = tf.constant([[[1, 2, 3, 4], [5, 6, 7, 8]],[[1, 2, 3, 4], [5, 6, 7, 8]],[[1, 2, 3, 4], [5, 6, 7, 8]]])
 tx = tf.transpose(x, [0,1,2])
 print("before transpose shape: ", x.shape)
@@ -121,8 +121,81 @@ print("aft transpose shape: ", tx.shape)
 print(x, tx)
 
 
+#! Tensor çoğaltma
+print("=> Broadcasting: ", tf.broadcast_to(tf.constant([1, 2, 3]), [3, 3]))
 
 
+#! tf.convert_to_tensor
+print("\n=> tf.convert_to_tensor")
+x = tf.convert_to_tensor(x)
+print(x)
+
+
+#! Ragged Tensors : Düzensiz Tensorler
+print("\n=> Ragged Tensors : Düzensiz Tensorler")
+ragged_list = [[0, 1, 2, 3], [4, 5], [6, 7, 8],[9]]
+
+# Normal tensor'e çevirme yöntemleri ile düzensiz tensorler çevrilemez
+try:
+    tensor = tf.constant(ragged_list)
+except Exception as e:
+    print(f"{type(e).__name__}: {e}")
+
+
+# Düzensiz Tensorler bu şekilde dönüştürülür.
+ragged_tensor = tf.ragged.constant(ragged_list)
+print("ragged_tensor: ", ragged_tensor)
+
+
+
+#! String tensor
+print("\n=> String tensor")
+# Tek elemanlı bir stringi ayırmak için
+scalar_string_tensor = tf.constant("Gray wolf")
+print("String Normal: ",tf.strings.split(scalar_string_tensor, sep=" "))
+
+# Çok boyutlu bir arrayde, ayırrma sonucu her bir eleman için farklı boyutlar çıkacağı için RaggedTensor tipine dönüşecektir.
+tensor_of_strings = tf.constant(["Gray wolf", "Quick brown fox", "Lazy dog"])
+splitted = tf.strings.split(tensor_of_strings)
+print("String Ragged: ", splitted, splitted.shape)
+
+
+#! Stringden, Sayıya dönüştürme
+print("\n=> Stringden, Sayıya dönüştürme")
+text = tf.constant("1 10 100")
+print(tf.strings.to_number(tf.strings.split(text, " ")))
+
+
+#! StringText to Number
+print("\n=> StringText to Number")
+text = tf.constant("ABCD")
+
+byte_strings = tf.strings.bytes_split(text)
+print("Byte strings:", byte_strings)
+
+byte_ints = tf.io.decode_raw(text, tf.uint8)
+print("Bytes:", byte_ints)
+
+
+#! Unicode karakter çevirme
+print("\n=> unicode_bytes")
+unicode_bytes = tf.constant("アヒル 🦆")
+unicode_char_bytes = tf.strings.unicode_split(unicode_bytes, "UTF-8")
+unicode_values = tf.strings.unicode_decode(unicode_bytes, "UTF-8")
+print("\nUnicode bytes:", unicode_bytes)
+print("\nUnicode chars:", unicode_char_bytes)
+print("\nUnicode values:", unicode_values)
+
+
+
+#!Sparse tensors: Seyrek Tensor
+print("\n=> Sparse tensors: Seyrek Tensor")
+# Seyrek tensörler, değerleri bellek açısından verimli bir şekilde dizine göre depolar
+sparse_tensor = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[3, 4])
+print(sparse_tensor, "\n")
+
+# sparse tensorleri, dense'e (normal tensor tensor'e) çevirebiliriz.
+print(tf.sparse.to_dense(sparse_tensor))
 
 
 
