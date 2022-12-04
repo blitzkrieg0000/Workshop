@@ -27,19 +27,29 @@ print("\n-> 1-Kategorik değişkenin frekanslarını saydıralım (Sigara içme 
 
 
 #! 2-Box Plot: Aykırı verileri gözlemlememizde çok yardımcı bir grafiktir.
+plt.figure()
 sb.boxplot(x=df["total_bill"]) # Dikey grafik için: orient="v" 
-plt.show()
-
+plt.show(block=False)
 
 #? Hangi günler daha fazla kazanılıyor ?
+plt.figure()
+sb.boxplot(x="day", y="total_bill", data=df)
+plt.show(block=False)
 
+#? Sabah mı akşam mı daha fazla kazanılıyor ?
+plt.figure()
+sb.boxplot(x="time", y="total_bill", data=df)
+plt.show(block=False)
 
+#? Kişi sayısı kaç ?
+plt.figure()
+sb.boxplot(x="size", y="total_bill", data=df)
+plt.show(block=False)
 
-
-
-
-
-
+#? Kişi sayısı kaç ?
+plt.figure()
+sb.boxplot(x="day", y="total_bill", hue="sex", data=df)
+plt.show()
 
 
 
