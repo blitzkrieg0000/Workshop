@@ -25,10 +25,15 @@ print("\n-> İstatistikler :\n",
 
 #! Eksik Değerler Üzerinde İşlem
 print("\n=> Eksik Değerler Üzerinde İşlem : \n")
-print(df.isnull().values.any())
+
+print("\n-> Hiç eksik var mı? :\n",
+    df.isnull().values.any()
+)
 
 # Hangi değişkenlerde eksik değer var?
-print(df.isnull().sum())
+print("\n-> Hangi değişkenlerde eksiklik var :\n",
+    df.isnull().sum()
+)
 
 # Eksik değerlere 0 ver.
 # print(df["orbital_priod"].fillna(0, inplace=True))
@@ -39,7 +44,6 @@ print(df.isnull().sum())
 
 #! Kategorik değişkenleri anlamak
 print("\n|#> Kategorik değişkenleri anlamak :\n")
-
 
 kat_df = df.select_dtypes(include=["category"])
 print("\n -> Kategorik değişken seçme: \n",
@@ -111,7 +115,7 @@ print("\n-> Ordinal olup olmadığı :\n",
 )
 
 # Ordinal tanımlamayı istediğimiz sıraya göre yapma
-cut_kategoriler = ["Fair","Good","Very Good","Premium","Ideal"]
+cut_kategoriler = ["Fair", "Good", "Very Good", "Premium", "Ideal"]
 df['cut'] = df['cut'].astype(pd.api.types.CategoricalDtype(categories=cut_kategoriler, ordered=True))
 print("\n-> Ordinal sıralamanın istediğimiz gibi olup olmadığı :\n",
     df['cut'].head(1)
@@ -166,11 +170,7 @@ plt.show()
 
 
 #! Çaprazlamalar ile veri derinliği
-(sb
-    .FacetGrid(df,
-        hue="cut",
-        height=5,
-        xlim=(0,10000))
+(sb.FacetGrid(df, hue="cut", height=7, xlim=(0, 10000))
     .map(sb.kdeplot, "price", shade=True)
     .add_legend()
 )

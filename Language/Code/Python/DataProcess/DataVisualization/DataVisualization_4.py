@@ -16,10 +16,11 @@ print("\n-> Özet-2 :\n",
 
 
 #! Korelasyon grafiği
-# Korelasyon iki veri arasındaki ilişki demektir.
-#ScatterPlot(Saçılım grafiği sayısal değişkenler arasındaki ilişkiyi gösterir.)
-#Birden fazla sayısal değişkenin birlikte oluşturduğu yapılar ele alınır.
-
+"""
+        Korelasyon iki veri arasındaki ilişki demektir.
+    ScatterPlot(Saçılım grafiği sayısal değişkenler arasındaki korelasyonu-ilişkiyi gösterir.)
+    Birden fazla sayısal değişkenin birlikte oluşturduğu yapılar ele alınır.
+"""
 plt.figure()
 sb.scatterplot(x="total_bill", y="tip", data=df)
 plt.show(block=False)

@@ -1,9 +1,9 @@
-# Veri Görselleştirme 8
+# Veri Görselleştirme 9
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sb
 
-tips = sb.load_dataset("flights")
+tips = sb.load_dataset("fmri")
 df:pd.DataFrame = tips.copy()
 
 #! Özet
@@ -20,37 +20,54 @@ print("\n-> Özet-4 :\n",
     df.shape
 )
 
-print("\n-> passengers :\n",
-    df["passengers"].describe()
+print("\n-> Signal :\n",
+    df.groupby("timepoint")["signal"].count()
+)
+
+print("\n-> Signal :\n",
+    df.groupby("timepoint")["signal"].describe()
 )
 
 
+#! Çizgi Grafik
+"""
+        Sinyaller ve IoT cihaz verileri için kullanılır.
+    Genellikle zaman serisine bağlı makine verileri ile çalışılır.
+"""
 
-#! HEATMAP (ISI HARİTASI)
-#Zaman serilerini gözlemlerken önemlidir.
-df = df.pivot("month", "year", "passengers")
-print("\n-> Pivot :\n",
-    df
+plt.figure()
+sb.lineplot(x="timepoint", y="signal", data=df)
+plt.show(block=False)
+
+plt.figure()
+sb.lineplot(x="timepoint", y="signal", hue="event", data=df)
+plt.show(block=False)
+
+plt.figure()
+sb.lineplot(x="timepoint", y="signal", hue="event", style="event", data=df)
+plt.show(block=False)
+
+plt.figure()
+sb.lineplot(
+    x="timepoint", 
+    y="signal", 
+    hue="event",
+    style="event", 
+    markers=True,
+    dashes=False,
+    data=df
 )
-
-#Pivot ile çalışır.
-plt.figure()
-sb.heatmap(df);
 plt.show(block=False)
 
 plt.figure()
-sb.heatmap(df, annot=True, fmt="d");
-plt.show(block=False)
-
-plt.figure()
-sb.heatmap(df, annot=True, fmt="d", linewidths=0.5); # cbar=False
+sb.lineplot(
+    x="timepoint", 
+    y="signal", 
+    hue="region",
+    style="event", 
+    data=df
+)
 plt.show()
-
-
-
-
-
-
 
 
 

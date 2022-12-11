@@ -46,7 +46,7 @@ plt.figure()
 sb.boxplot(x="size", y="total_bill", data=df)
 plt.show(block=False)
 
-#? Kişi sayısı kaç ?
+#? Hangi günlerde cinsiyete göre ödeme sayısı daha fazla ?
 plt.figure()
 sb.boxplot(x="day", y="total_bill", hue="sex", data=df)
 plt.show()

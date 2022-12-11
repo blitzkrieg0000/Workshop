@@ -21,8 +21,7 @@ print("\n-> Özet-4 :\n",
 )
 
 
-#! Scatter Plot MATRİSİ
-
+#! ScatterPlot Matrisi
 sb.pairplot(df)
 plt.show(block=False)
 

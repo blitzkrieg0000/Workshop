@@ -16,9 +16,11 @@ print("\n-> Özet-2 :\n",
 
 
 #! Violin grafiği: 
-#Yoğunluk grafiğinin ve box grafiğinin kesişimi gifi düşünülebilir.
-#Dağılım hakkında bilgi sunar.
-#(catplot yeni bir figure üretiyor. plt.figure() yapmaya gerek yok)
+"""
+        Yoğunluk grafiğinin ve box grafiğinin kesişimi gibi düşünülebilir.
+    Dağılım hakkında bilgi sunar.
+    (catplot yeni bir figure üretiyor. plt.figure() yapmaya gerek yok)
+"""
 sb.catplot(y="total_bill", kind="violin", data=df)
 plt.show(block=False)
 

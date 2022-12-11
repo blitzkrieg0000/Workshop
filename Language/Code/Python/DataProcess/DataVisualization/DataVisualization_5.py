@@ -16,8 +16,8 @@ print("\n-> Özet-2 :\n",
 )
 
 #! Linear Plot
-# (Oto figure)
-#İki değşken arasındaki doğrusal ilişkiyi gösterir.
+# (lmplot oto figure: plt.figure yazmaya gerek yok)
+#İki değişken arasındaki doğrusal ilişkiyi gösterir.
 sb.lmplot(x="total_bill", y="tip", data=df)
 plt.show(block=False)
 
