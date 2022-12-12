@@ -12,7 +12,7 @@ import researchpy as rp
 
 #! Kovaryans
 """
-    İki değişken arasındaki ilişkinin değişkenlik ölçüsüdür.
+    İki değişken arasında bir ilişki varsa (korelasyon), bu ilişkinin değişkenlik ölçüsüdür.
 """
 
 #! Korelasyon

@@ -1,6 +1,5 @@
+import numpy as np
 from scipy.stats import bernoulli
-import numpy as np
-import numpy as np
 
 
 # Olayların olabilirliğinin sayısal ifadesine olasılık denir.
@@ -9,8 +8,7 @@ import numpy as np
        Gerçekleşen olayların sayısal karşılığıdır.
 
     Olasılık Dağılımı:
-      Olayların sayısal karşılıklarının gerçekleşme olasılıkları ile birlite sunulmasıdır.
-
+       Olayların sayısal karşılıklarının gerçekleşme olasılıkları ile birlite sunulmasıdır.
 """
 
 #! Kesikli Olasılık Dağılımı (1-0, Kategorik, Yazı tura...)
@@ -27,12 +25,16 @@ import numpy as np
 # Amacımız olasılıklar ile belirsizlikleri ortadan kaldırmaya çalışmaktır.
 
 
+
+
 #! 1-BERNOULLI DAĞILIMI
 # Başarılı-Başarısız, Olumlu-Olumsuz şeklinde iki sonuçla olaylar ile ilgilenildiğinde kullanılan kesikli olasılık dağılımıdır.
+
+#? Soru: Yazı Tura ihtimalini "bernuolli olasılık dağılımı" ile hesaplayınız.
 p = 0.6              # Tura ihtimalinin 0.6 olması durumunu ele alalım.
 rv = bernoulli(p)
 
-sonuc = rv.pmf(k=1)  # probability mass function (olasılık kütle fonksiyonu)
+# "pmf" : probability mass function (olasılık kütle fonksiyonu)
 print("\n-> Tura ihtimaline 1 dersek :\n",
     rv.pmf(k=1)
 )
@@ -47,7 +49,7 @@ print("\n-> Yazı ihtimaline 0 dersek :\n",
 #-uzun vadede kararlılığını- tanımlayan olasılık teoremidir.
 
 # Yazı-Tura olasılığı niçin %50 kabul edilir? (1 durum gelebilir / toplam durum 2)
-# Çünkü uzun vadede bu yasaya göre ortalma olarak 0 ve 1 gelme durumu %50 ye yaklaşır.
+# Çünkü uzun vadede bu yasaya göre ortalama olarak 0 ve 1 gelme durumu %50 ye yaklaşır.
 
 
 rng = np.random.RandomState(123) #Random ifade üretirken her çalıştırmada üretilen değerlerin aynı olduğunu garantiler.

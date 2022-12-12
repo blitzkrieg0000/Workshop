@@ -8,7 +8,7 @@ df:pd.DataFrame = tips.copy()
 
 #! Özet
 print("\n-> Özet-1 :\n",
-    df.head()
+    df.head(10)
 )
 print("\n-> Özet-2 :\n",
     df.describe().T
@@ -48,28 +48,12 @@ sb.lineplot(x="timepoint", y="signal", hue="event", style="event", data=df)
 plt.show(block=False)
 
 plt.figure()
-sb.lineplot(
-    x="timepoint", 
-    y="signal", 
-    hue="event",
-    style="event", 
-    markers=True,
-    dashes=False,
-    data=df
-)
+sb.lineplot(x="timepoint", y="signal", hue="event", style="event", markers=True, dashes=False, data=df)
 plt.show(block=False)
 
 plt.figure()
-sb.lineplot(
-    x="timepoint", 
-    y="signal", 
-    hue="region",
-    style="event", 
-    data=df
-)
+sb.lineplot(x="timepoint", y="signal", hue="region", style="event", data=df)
 plt.show()
-
-
 
 
 

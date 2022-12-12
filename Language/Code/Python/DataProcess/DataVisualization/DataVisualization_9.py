@@ -35,7 +35,7 @@ plt.show()
     belirtmemiz gerekir ki doğru veriler ile çalışabilelim.
 """
 
-closing.index = pd.DatetimeIndex(closing.index) #DateTimeIndex olması gerekir, değilse:
+closing.index = pd.DatetimeIndex(closing.index) # DateTimeIndex olması gerekir, değilse:
 
 print("\n->  :\n",
     closing.index 

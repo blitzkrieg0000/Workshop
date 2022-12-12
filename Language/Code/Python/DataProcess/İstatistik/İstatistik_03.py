@@ -1,6 +1,3 @@
-import seaborn as sb
-import pandas as pd
-import researchpy as rp
 import numpy as np
 import statsmodels.stats.api as sms
 np.random.seed(0)
@@ -8,7 +5,7 @@ np.random.seed(0)
 
 #! Güven Aralığı bulma
 
-# Rastgele fiyar veri seti oluştur
+# Rastgele fiyat veri seti oluştur
 fiyatlar = np.random.randint(10, 110, 1000)
 
 

@@ -10,7 +10,7 @@ np.random.seed(0)
 
 #! Merkezi Limit Teoremi
 """
-    Bağımsız ve aynı dağılıma sahip rassal değişkenlerin toplamı ya da,
+        Bağımsız ve aynı dağılıma sahip rassal değişkenlerin toplamı ya da,
     aritmetik ortalaması yaklaşık olarak normal dağılmaktadır.
 """
 
