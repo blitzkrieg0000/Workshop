@@ -1,0 +1,32 @@
+Yapılacak çalışmada fizyolojik ve davranışsal veriler arasındaki korelasyon, geleneksel makine öğrenmesi algoritmaları ve derin öğrenme ile bulunmaya çalışılacaktır.
+
+Çalışma da görünürde herhangi bir fizyolojik rahatsızlığı bulunmayan, gönüllü kişilerden anonim olarak veri alınacaktır.
+ 
+Belirli bir zaman dilimi içerisinde, "çizilen çizgide yürüme", "ayakta durma", "otururken bekleme", "oturup-kalkma" gibi deneklere yapılacak olan testlerden RGB bir kamera ile videolar alınıp bu videolardaki ilgili kişiye ait "BodyPose"(beden-iskelet) noktaları ve göz hareketleri(iris konumları) Google'ın "Mediapipe" kütüphanesi kullanılarak tespit edilerek kaydedilecektir.
+
+Alınan BodyPose verilerinin yanı sıra, kişinin belirli bir metni okuması veya belirli sorulara verdiği kısa yanıtlardan("evet","hayır") elde edilen ses, pythonda ki "librosa" vb. kütüphaneler aracılığı ile sayısal olarak verisetine kaydedilecektir.
+
+Kişiden alınan tükürük sıvısından yapılacak olan testten ortaya çıkan kortizol, aldesteron, testesteron, estradioli insülin ve içerdiği diğer bileşenler ile stres testi sonucu da veri setine kaydedilecektir.
+
+BodyPose ve Ses verilerinden gelen ham veriler, sinyal gibi düşünülecek; ortam koşullarına göre gürültülü olacakları göz önünde bulundurulup Savitzky-Golay, One Euro (alçak geçiren), SmoothNet vs. yöntemler ile temizlenmeye çalışılacaktır. 
+
+Eğer temizlenen sinyal verilerinin örnekleme oranları çok yüksekse windowing, PCA (Principal Component Analysis), SVD, ICA gibi veri boyutunu indirgeyen fakat verinin baskın ve anlamlı özelliklerini korumaya çalışan yöntemler veriye uygulanıp, veri boyutu küçültülmeye çalışılacaktır. Böylece anlamlı ve daha az veri ile işlem yapmak makine öğrenme uygulamalarının performansını arttırmış olacaktır.
+
+Gönüllü katılımcılara yukarıda belirtilen testler öncesi anket yaptırılacak ve bu ankette, ortalama uyku saatinin 5 saati geçip geçmediği, sigara kullanımı, alkol kullanımı, kırmızı reçete hap kullanımı, yakın zamanda bir olaydan etkilenip etkilenmediği, yaş verisi, stres testi ölçüm saati vb. sorular ile gözlemlere fazladan özellik sütunu(feature) eklenecektir.
+
+Elde edilen verilerde eksiklik varsa çeşitli istatistik tabanlı yöntemler ile eksiklikler giderilmeye çalışılacak; aykırı gözlemler var ise yapısal bir nedenden ötürü mü, yoksa tamamen rastgele mi gerçekleştiği sonucuna göre ayrıştırılacaktır.
+
+Veriler ham bir yapıda olup makine öğrenmesinin performansı için çeşitli baskın özelliklerin de seçilmesi gerekmektedir. Bunun için veriden özellik çıkartılacaktır. Sinyal olarak ele alacağımız BodyPose ve Ses verilerinden Relief, FFT(Fast Fourier Transform) veya DWT(Discrete Wavelet Transform) vb. algoritmalar ile sinyal özellikleri çıkarılacaktır.
+
+Sonuç olarak kişinin fizyolojik ve davranışsal verileri arasındaki ilişki SVM, kNN, Bayes Ağları, Karar Ağaçları, XGBoost, LSTM ağları gibi derin öğrenme ve geleneksel makine öğrenme algoritmaları ile  modellemeye tabi tutulacaktır.
+
+En başarılı model kullanılarak, bir kişinin sadece yukarıdaki bahsedilen testlerden alınan verileri ile stres tespiti, görüntü işleme aracılığı ile tahmin edilmeye çalışılacaktır.
+
+Bu işlemler Python dili ve Docker kullanılarak ölçeklenebilir bir mikroservis sistemi haline getirilecektir ve böylece platform-bağımsız olup geliştirilmesi kolay olacaktır.
+
+Mikroservisler gRPC haberleşmesi kullanılarak gerçek zamanlı haberleştirilecektir.
+
+Docker kullanılmasının bir diğer avantajı ise geliştirilebilir bir yapı sunup, gerçek zamanlı yapılacak uygulamalarda donanım için yapılması gereken özel ayar gereksinimini ortadan kaldırılacak olmasıdır.
+
+Mikroservis mimarisi ve gRPC kullanılmasının avantajı ise bu sistemi kullanacak olan arayüz için API(Application Programming Interface) sunabilmesi ve sistemin ölçeklenebilir bir yapı olacak olmasıdır.
+
