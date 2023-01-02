@@ -5,7 +5,7 @@ if '__main__' == __name__:
     ddepth = cv2.CV_16S
     kernel_size = 3
 
-    image = cv2.imread ("asset/court_1.png")
+    image = cv2.imread ("asset/court_03.png")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     gray = cv2.GaussianBlur(gray, (3, 3), 0)

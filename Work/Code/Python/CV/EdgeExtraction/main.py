@@ -6,12 +6,12 @@ if '__main__' == __name__:
 
     edgeDetector = EdgeDetector()
 
-    image = cv2.imread ("asset/court_2.png")
+    image = cv2.imread ("asset/court_03.png")
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
 
-    r1 = edgeDetector.Sobel(gray)
+    r1 = edgeDetector.Extract(gray, "Sobel")
     r2 = edgeDetector.Prewitt(gray)
     r3 = edgeDetector.Robert(gray)
     r4 = edgeDetector.Canny(gray)

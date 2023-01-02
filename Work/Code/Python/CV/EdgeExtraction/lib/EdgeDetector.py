@@ -4,8 +4,14 @@ import numpy as np
 
 class EdgeDetector():
     def __init__(self) -> None:
-        pass
+        self.__EdgeDetectionMethods = {
+            "Robert": self.Robert, "Sobel":self.Sobel, "Laplace":self.Laplace, "Prewitt":self.Prewitt, "Canny":self.Canny
+        }
     
+    def Extract(self, frame, method_name):
+        if method_name not in self.__EdgeDetectionMethods.keys():
+            raise AssertionError(f"Geçerli metot isimleri: {list(self.__EdgeDetectionMethods.keys())}")
+        return self.__EdgeDetectionMethods.get(method_name, None)(frame)
 
     def PreProcess(func):
         def wrapper(self, *args, **kwargs):
@@ -13,7 +19,6 @@ class EdgeDetector():
             return func(self, img)
 
         return wrapper
-
 
     @PreProcess
     def Sobel(self, image:np.ndarray):
