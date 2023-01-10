@@ -112,14 +112,11 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
             i, j = (result[:, 5:] > conf_thres).nonzero(as_tuple=False).T
             result = torch.cat((box[i], result[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
-            
             # conf, j = result[:, 5:].max(1, keepdim=True)
             conf = np.max(result[:, 5:], axis=1, keepdims=True)
             j = np.argmax(result[:, 5:], axis=1, keepdims=True)
             result = np.concatenate([box, conf, np.array(j, np.float32)], 1)#[conf > conf_thres]
             result = result[result[:, 4] > conf_thres]
-
-        print("result: ", result)  
 
         # Eğer sınıf filtresi varsa uygula. (Sadece bulunması istenen nesne id si: Filtrele)
         if classes is not None:
@@ -133,16 +130,18 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
         n = result.shape[0]  # number of boxes
         if not n:  # Eğer hiç sonuç yoksa sonraki resulta geç
             continue
-        elif n > 10:  # Bulunan sonuçlar istenilen nesne sayısını geçiyorsa fazlasını kırp; ignore la...
-            result = result[result[..., 4].argsort(axis=0)[:10]]
+        elif n > max_det:  # Bulunan sonuçlar istenilen nesne sayısını geçiyorsa fazlasını kırp; ignore la...
+            result = result[result[..., 4].argsort(axis=0)[:max_det]]
 
         #! Batched NMS
-        c = result[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        print("c : ", c)
-
+        # Burada obje niteliği taşıyan cisimlerin xyxy koordinatlarına sınıf_indexleri*4096 gibi bir sayı eklenerek,
+        #iç içe geçmiş cisimlerin bbox kareleri ayrıştırılarak aynı cisim için hesaplanan olası kareler gruplanmış olur.
+        #Ve NMS metodu uygulandığında bu cisimler daha iyi ayrıştırılırlar.
+        c = result[:, 5:6] * (0 if agnostic else max_wh)  # class indexlerini max_wh ile çarp
         boxes, scores = result[:, :4] + c, result[:, 4]  # boxes (offset by class), scores
         
-        i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
+        # torchvision ile NMS uygula
+        i = torchvision.ops.nms(boxes, scores, iou_thres)  
 
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
