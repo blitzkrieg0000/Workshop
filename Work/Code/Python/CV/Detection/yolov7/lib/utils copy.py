@@ -47,12 +47,11 @@ def clip_coords(boxes, img_shape):
 
 def xywh2xyxy(x):
     # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
-    y = np.copy(x)
+    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
     y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
     y[:, 2] = x[:, 0] + x[:, 2] / 2  # bottom right x
     y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
-
     return y
 
 
@@ -63,13 +62,12 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
         Returns:
             list of detections, on (n,6) tensor per image [xyxy, conf, cls]
     """
-    nc = prediction.shape[2] - 5  # Sınıf sayısı: 80
 
-    # [center_x, center_y, width, height, obj_confidence_score, class0, ..., class79] ya da
-    xc = prediction[..., 4] > conf_thres    # Scorelar verilen eşik değerinden düşükse False yüksekse True olarak işaretle
+    nc = prediction.shape[2] - 5  # Sınıf sayısı
+    xc = prediction[..., 4] > conf_thres  # threshold
 
     # Settings
-    min_wh, max_wh = 2, 4096  # minumum ve maksimum kutu pixel boyutu (piksel)
+    min_wh, max_wh = 2, 4096  # (pixels) minumum ve maksimum kutu pixel boyutu
     max_det = 300  # Her görüntüdeki maksimum tespit sayısı
     max_nms = 30000  # torchvision.ops.nms() için maksimum kutu boyutu
     time_limit = 10.0  # Timeout
@@ -78,83 +76,73 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
     merge = False  # Merge-NMS kullan
 
     t = time.time()
-    output = [ np.zeros([0, 6]) ] * prediction.shape[0]
-    for xi, result in enumerate(prediction):  # image index, image inference
+    output = [torch.zeros((0, 6), device=prediction.device)] * prediction.shape[0]
+    for xi, x in enumerate(prediction):  # image index, image inference
         # Kısıtlama uygula
-        # result[((result[..., 2:4] < min_wh) | (result[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
-        result = result[xc[xi]]  # Eşik değerine uygun sonuçları filtrele
+        # x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
+        x = x[xc[xi]]  # confidence
 
-        # Eğer autolabelling varsa apriori labelları ekle: TR-> Dışarıdan EK sonuç ekleme
+        # Cat apriori labels if autolabelling
         if labels and len(labels[xi]):
             l = labels[xi]
-            v = torch.zeros((len(l), nc + 5), device=result.device)
+            v = torch.zeros((len(l), nc + 5), device=x.device)
             v[:, :4] = l[:, 1:5]  # box
             v[:, 4] = 1.0  # conf
             v[range(len(l)), l[:, 0].long() + 5] = 1.0  # cls
-            result = torch.cat((result, v), 0)
+            x = torch.cat((x, v), 0)
 
-        # İşlenecek sonuç yoksa diğerine geç
-        if not result.shape[0]:
+        # If none remain process next image
+        if not x.shape[0]:
             continue
 
-        # Confidence hesapla
-        if nc == 1: # Tek sınıflı modeller için cls_loss 0 dır ve cls_conf daima 0.5 dir. Bu yüzden çarpmaya gerek yok.
-            result[:, 5:] = result[:, 4:5]    
-        else:       # Çok sınıflı sınıflandırmada ise (multiclass classification) eşik değerini obje eşik değeri ile çarpıyoruz.
-            result[:, 5:] *= result[:, 4:5]  # conf = obj_conf * cls_conf
+        # Compute conf
+        if nc == 1:
+            x[:, 5:] = x[:, 4:5] # for models with one class, cls_loss is 0 and cls_conf is always 0.5,
+                                 # so there is no need to multiplicate.
+        else:
+            x[:, 5:] *= x[:, 4:5]  # conf = obj_conf * cls_conf
 
         # Box (center x, center y, width, height) to (x1, y1, x2, y2)
-        box = xywh2xyxy(result[:, :4])
+        box = xywh2xyxy(x[:, :4])
 
-        # Detections matrix nx6 (xyxy, confidence_score, cls)
+        # Detections matrix nx6 (xyxy, conf, cls)
         if multi_label:
-            # TODO Multilabel olmadığı için bu kısım numpy a çevrilmeyecek
-            i, j = (result[:, 5:] > conf_thres).nonzero(as_tuple=False).T
-            result = torch.cat((box[i], result[i, j + 5, None], j[:, None].float()), 1)
+            i, j = (x[:, 5:] > conf_thres).nonzero(as_tuple=False).T
+            x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
-            
-            # conf, j = result[:, 5:].max(1, keepdim=True)
-            conf = np.max(result[:, 5:], axis=1, keepdims=True)
-            j = np.argmax(result[:, 5:], axis=1, keepdims=True)
-            result = np.concatenate([box, conf, np.array(j, np.float32)], 1)#[conf > conf_thres]
-            result = result[result[:, 4] > conf_thres]
+            conf, j = x[:, 5:].max(1, keepdim=True)
+            x = torch.cat((box, conf, j.float()), 1)[conf.view(-1) > conf_thres]
 
-        print("result: ", result)  
-
-        # Eğer sınıf filtresi varsa uygula. (Sadece bulunması istenen nesne id si: Filtrele)
+        # Filter by class
         if classes is not None:
-            result = result[(result[:, 5] == classes).any(1)]
+            x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
 
         # Sonlu kısıtlama uygula(finite constraint) 
-        # if not torch.isfinite(result).all():
-        #     result = result[torch.isfinite(result).all(1)]
-        
+        # if not torch.isfinite(x).all():
+        #     x = x[torch.isfinite(x).all(1)]
+
         # Boyut kontrolü yap
-        n = result.shape[0]  # number of boxes
-        if not n:  # Eğer hiç sonuç yoksa sonraki resulta geç
+        n = x.shape[0]  # number of boxes
+        if not n:  # no boxes
             continue
-        elif n > 10:  # Bulunan sonuçlar istenilen nesne sayısını geçiyorsa fazlasını kırp; ignore la...
-            result = result[result[..., 4].argsort(axis=0)[:10]]
+        elif n > max_nms:  # excess boxes
+            x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence
 
-        #! Batched NMS
-        c = result[:, 5:6] * (0 if agnostic else max_wh)  # classes
-        print("c : ", c)
-
-        boxes, scores = result[:, :4] + c, result[:, 4]  # boxes (offset by class), scores
-        
+        # Batched NMS
+        c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
+        boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
         i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
-
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
         if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
             # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
             iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
             weights = iou * scores[None]  # box weights
-            result[i, :4] = torch.mm(weights, result[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
+            x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
             if redundant:
                 i = i[iou.sum(1) > 1]  # require redundancy
 
-        output[xi] = result[i]
+        output[xi] = x[i]
         if (time.time() - t) > time_limit:
             print(f'WARNING: NMS time limit {time_limit}s exceeded')
             break  # time limit exceeded
@@ -218,6 +206,3 @@ def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scale
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
     img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
     return img, ratio, (dw, dh)
-
-
-
