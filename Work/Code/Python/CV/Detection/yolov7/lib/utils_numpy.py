@@ -3,8 +3,6 @@ import time
 
 import cv2
 import numpy as np
-import torch
-import torchvision
 
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=3):
@@ -56,82 +54,53 @@ def xywh2xyxy(x):
     return y
 
 
-def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False, labels=()):
+def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False):
     """
         Non-Maximum Suppression (NMS)
 
-        Returns:
+        Return:
             list of detections, on (n,6) tensor per image [xyxy, conf, cls]
     """
-    nc = prediction.shape[2] - 5  # Sınıf sayısı: 80
-
     # [center_x, center_y, width, height, obj_confidence_score, class0, ..., class79] ya da
     xc = prediction[..., 4] > conf_thres    # Scorelar verilen eşik değerinden düşükse False yüksekse True olarak işaretle
 
     # Settings
-    min_wh, max_wh = 2, 4096  # minumum ve maksimum kutu pixel boyutu (piksel)
+    max_wh = 4096  # minumum ve maksimum kutu pixel boyutu (piksel)
     max_det = 300  # Her görüntüdeki maksimum tespit sayısı
     max_nms = 30000  # torchvision.ops.nms() için maksimum kutu boyutu
     time_limit = 10.0  # Timeout
-    redundant = True  # Gereksiz tespitler
-    multi_label &= nc > 1  # Her kutu için çok etiketli sınıflandırma (resim başı 0.5ms/img)
-    merge = False  # Merge-NMS kullan
 
     t = time.time()
     output = [ np.zeros([0, 6]) ] * prediction.shape[0]
     for xi, result in enumerate(prediction):  # image index, image inference
-        # Kısıtlama uygula
-        # result[((result[..., 2:4] < min_wh) | (result[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
         result = result[xc[xi]]  # Eşik değerine uygun sonuçları filtrele
-
-        # Eğer autolabelling varsa apriori labelları ekle: TR-> Dışarıdan EK sonuç ekleme
-        if labels and len(labels[xi]):
-            l = labels[xi]
-            v = torch.zeros((len(l), nc + 5), device=result.device)
-            v[:, :4] = l[:, 1:5]  # box
-            v[:, 4] = 1.0  # conf
-            v[range(len(l)), l[:, 0].long() + 5] = 1.0  # cls
-            result = torch.cat((result, v), 0)
 
         # İşlenecek sonuç yoksa diğerine geç
         if not result.shape[0]:
             continue
 
-        # Confidence hesapla
-        if nc == 1: # Tek sınıflı modeller için cls_loss 0 dır ve cls_conf daima 0.5 dir. Bu yüzden çarpmaya gerek yok.
-            result[:, 5:] = result[:, 4:5]    
-        else:       # Çok sınıflı sınıflandırmada ise (multiclass classification) eşik değerini obje eşik değeri ile çarpıyoruz.
-            result[:, 5:] *= result[:, 4:5]  # conf = obj_conf * cls_conf
+        # Çok sınıflı sınıflandırmada ise (multiclass classification) eşik değerini obje eşik değeri ile çarpıyoruz.
+        result[:, 5:] *= result[:, 4:5]  # conf = obj_conf * cls_conf
 
         # Box (center x, center y, width, height) to (x1, y1, x2, y2)
         box = xywh2xyxy(result[:, :4])
 
         # Detections matrix nx6 (xyxy, confidence_score, cls)
-        if multi_label:
-            # TODO Multilabel olmadığı için bu kısım numpy a çevrilmeyecek
-            i, j = (result[:, 5:] > conf_thres).nonzero(as_tuple=False).T
-            result = torch.cat((box[i], result[i, j + 5, None], j[:, None].float()), 1)
-        else:  # best class only
-            # conf, j = result[:, 5:].max(1, keepdim=True)
-            conf = np.max(result[:, 5:], axis=1, keepdims=True)
-            j = np.argmax(result[:, 5:], axis=1, keepdims=True)
-            result = np.concatenate([box, conf, np.array(j, np.float32)], 1)#[conf > conf_thres]
-            result = result[result[:, 4] > conf_thres]
+        conf = np.max(result[:, 5:], axis=1, keepdims=True)
+        j = np.argmax(result[:, 5:], axis=1, keepdims=True)
+        result = np.concatenate([box, conf, np.array(j, np.float32)], 1)#[conf > conf_thres]
+        result = result[result[:, 4] > conf_thres]
 
         # Eğer sınıf filtresi varsa uygula. (Sadece bulunması istenen nesne id si: Filtrele)
         if classes is not None:
             result = result[(result[:, 5] == classes).any(1)]
 
-        # Sonlu kısıtlama uygula(finite constraint) 
-        # if not torch.isfinite(result).all():
-        #     result = result[torch.isfinite(result).all(1)]
-        
         # Boyut kontrolü yap
         n = result.shape[0]  # number of boxes
         if not n:  # Eğer hiç sonuç yoksa sonraki resulta geç
             continue
-        elif n > max_det:  # Bulunan sonuçlar istenilen nesne sayısını geçiyorsa fazlasını kırp; ignore la...
-            result = result[result[..., 4].argsort(axis=0)[:max_det]]
+        elif n > max_nms:  # Bulunan sonuçlar istenilen nesne sayısını geçiyorsa fazlasını kırp; ignore la...
+            result = result[result[..., 4].argsort(axis=0)[:max_nms]]
 
         #! Batched NMS
         # Burada obje niteliği taşıyan cisimlerin xyxy koordinatlarına sınıf_indexleri*4096 gibi bir sayı eklenerek,
@@ -140,25 +109,14 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
         c = result[:, 5:6] * (0 if agnostic else max_wh)  # class indexlerini max_wh ile çarp
         boxes, scores = result[:, :4] + c, result[:, 4]  # boxes (offset by class), scores
         
-        # torchvision ile NMS uygula
-        # i = torchvision.ops.nms(boxes, scores, iou_thres)  
-
-
-        CONF_THRESHOLD = 0.3
-        NMS_THRESHOLD = 0.4
-        i = cv2.dnn.NMSBoxes(boxes, scores, CONF_THRESHOLD, NMS_THRESHOLD)
-
-
-        if i.shape[0] > max_det:  # Tespitleri sınırla
+        #* NMS
+        # CONF_THRESHOLD = 0.3
+        # NMS_THRESHOLD = 0.4
+        i = cv2.dnn.NMSBoxes(boxes, scores, conf_thres, iou_thres)
+        
+        # Tespitleri sınırla
+        if i.shape[0] > max_det:  
             i = i[:max_det]
-
-        if merge and (1 < n < 3E3):  # Ağırlıklı ortalama kullanarak NMS leri birleştir.
-            # Bboxları şu şekilde güncelle: boxes(i,4) = weights(i,n) * boxes(n,4)
-            iou = box_iou(boxes[i], boxes) > iou_thres  # IoU Matrisi
-            weights = iou * scores[None]  # box weights
-            result[i, :4] = torch.mm(weights, result[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
-            if redundant:
-                i = i[iou.sum(1) > 1]  # "redundancy" gerektir.
 
         output[xi] = result[i]
         if (time.time() - t) > time_limit:
@@ -166,31 +124,6 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
             break  # time limit exceeded
 
     return output
-
-
-def box_iou(box1, box2):
-    # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
-    """
-    Return intersection-over-union (Jaccard index) of boxes.
-    Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
-    Arguments:
-        box1 (Tensor[N, 4])
-        box2 (Tensor[M, 4])
-    Returns:
-        iou (Tensor[N, M]): the NxM matrix containing the pairwise
-            IoU values for every element in boxes1 and boxes2
-    """
-
-    def box_area(box):
-        # box = 4xn
-        return (box[2] - box[0]) * (box[3] - box[1])
-
-    area1 = box_area(box1.T)
-    area2 = box_area(box2.T)
-
-    # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
-    inter = (torch.min(box1[:, None, 2:], box2[:, 2:]) - torch.max(box1[:, None, :2], box2[:, :2])).clamp(0).prod(2)
-    return inter / (area1[:, None] + area2 - inter)  # iou = inter / (area1 + area2 - inter)
 
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):

@@ -3,7 +3,7 @@ import numpy as np
 import onnxruntime as ort
 from numpy import random
 
-from lib.utils import (letterbox, non_max_suppression, plot_one_box, scale_coords)
+from lib.utils_numpy import (letterbox, non_max_suppression, plot_one_box, scale_coords)
 
 
 def detect():
