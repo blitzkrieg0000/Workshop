@@ -37,12 +37,12 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     return coords
 
 
-def clip_coords(boxes, img_shape):
+def clip_coords(boxes: np.array, img_shape):
     # Clip bounding xyxy bounding boxes to image shape (height, width)
-    boxes[:, 0].clamp_(0, img_shape[1])  # x1
-    boxes[:, 1].clamp_(0, img_shape[0])  # y1
-    boxes[:, 2].clamp_(0, img_shape[1])  # x2
-    boxes[:, 3].clamp_(0, img_shape[0])  # y2
+    boxes[:, 0].clip(0, img_shape[1])  # x1
+    boxes[:, 1].clip(0, img_shape[0])  # y1
+    boxes[:, 2].clip(0, img_shape[1])  # x2
+    boxes[:, 3].clip(0, img_shape[0])  # y2
 
 
 def xywh2xyxy(x):
@@ -141,17 +141,24 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
         boxes, scores = result[:, :4] + c, result[:, 4]  # boxes (offset by class), scores
         
         # torchvision ile NMS uygula
-        i = torchvision.ops.nms(boxes, scores, iou_thres)  
+        # i = torchvision.ops.nms(boxes, scores, iou_thres)  
 
-        if i.shape[0] > max_det:  # limit detections
+
+        CONF_THRESHOLD = 0.3
+        NMS_THRESHOLD = 0.4
+        i = cv2.dnn.NMSBoxes(boxes, scores, CONF_THRESHOLD, NMS_THRESHOLD)
+
+
+        if i.shape[0] > max_det:  # Tespitleri sınırla
             i = i[:max_det]
-        if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
-            # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
-            iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+
+        if merge and (1 < n < 3E3):  # Ağırlıklı ortalama kullanarak NMS leri birleştir.
+            # Bboxları şu şekilde güncelle: boxes(i,4) = weights(i,n) * boxes(n,4)
+            iou = box_iou(boxes[i], boxes) > iou_thres  # IoU Matrisi
             weights = iou * scores[None]  # box weights
             result[i, :4] = torch.mm(weights, result[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
             if redundant:
-                i = i[iou.sum(1) > 1]  # require redundancy
+                i = i[iou.sum(1) > 1]  # "redundancy" gerektir.
 
         output[xi] = result[i]
         if (time.time() - t) > time_limit:

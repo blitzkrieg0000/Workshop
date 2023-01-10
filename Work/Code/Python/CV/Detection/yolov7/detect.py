@@ -60,7 +60,8 @@ def detect():
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], canvas.shape).round()
 
                 # Print results
-                for c in det[:, -1].unique():
+                
+                for c in np.unique(det[:, -1]):
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
