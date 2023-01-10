@@ -5,18 +5,19 @@ import cv2
 import numpy as np
 
 
-def plot_one_box(x, img, color=None, label=None, line_thickness=3):
-    # Plots one bounding box on image img
-    tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
+def plot_one_box(bbox, canvas, color=None, label=None, line_thickness=1):
+    tl = line_thickness or round(0.002 * (canvas.shape[0] + canvas.shape[1]) / 2) + 1  # line/font thickness
     color = color or [random.randint(0, 255) for _ in range(3)]
-    c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
-    cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
+    c1, c2 = (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3]))
+    cv2.rectangle(canvas, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
     if label:
         tf = max(tl - 1, 1)  # font thickness
         t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
         c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
-        cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
-        cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+        canvas = cv2.rectangle(canvas, c1, c2, color, -1, cv2.LINE_AA)  # filled
+        canvas = cv2.putText(canvas, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+
+    return canvas
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
@@ -32,11 +33,12 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     coords[:, [1, 3]] -= pad[1]  # y padding
     coords[:, :4] /= gain
     clip_coords(coords, img0_shape)
+
     return coords
 
 
 def clip_coords(boxes: np.array, img_shape):
-    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    # Resimden dışarı taşan koordinatları yeniden boyutlandır.
     boxes[:, 0].clip(0, img_shape[1])  # x1
     boxes[:, 1].clip(0, img_shape[0])  # y1
     boxes[:, 2].clip(0, img_shape[1])  # x2
@@ -44,7 +46,7 @@ def clip_coords(boxes: np.array, img_shape):
 
 
 def xywh2xyxy(x):
-    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    # xywh -> xyxy koordinatlarına çevir.
     y = np.copy(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
     y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
@@ -67,7 +69,7 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
     # Settings
     max_wh = 4096  # minumum ve maksimum kutu pixel boyutu (piksel)
     max_det = 300  # Her görüntüdeki maksimum tespit sayısı
-    max_nms = 30000  # torchvision.ops.nms() için maksimum kutu boyutu
+    max_nms = 30000  # maksimum kutu boyutu
     time_limit = 10.0  # Timeout
 
     t = time.time()
@@ -127,35 +129,35 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
 
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
-    # Resize and pad image while meeting stride-multiple constraints
-    shape = img.shape[:2]  # current shape [height, width]
+    # Görüntüyü stride boyutuna göre yeniden boyutlandır ve doldur.
+    shape = img.shape[:2]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
 
-    # Scale ratio (new / old)
+    # Ölçek boyutu (yeni / eski): Yeniden boyutlandırma için gerekli
     r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
-    if not scaleup:  # only scale down, do not scale up (for better test mAP)
+    if not scaleup:  # Sadece boyutunu düşür, eğer boyut büyütülmek isteniyorsa sınırla
         r = min(r, 1.0)
 
-    # Compute padding
-    ratio = r, r  # width, height ratios
+    # Padding i ölç
+    ratio = r, r  # width, height oranları
     new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
     dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
-    if auto:  # minimum rectangle
+    if auto:  # minumum dikdörtgen
         dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
-    elif scaleFill:  # stretch
+    elif scaleFill:  # Resmi uzat
         dw, dh = 0.0, 0.0
         new_unpad = (new_shape[1], new_shape[0])
         ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
 
-    dw /= 2  # divide padding into 2 sides
+    dw /= 2  # Resim dolgusunu her iki tarafa eşit dağıtmak için
     dh /= 2
 
-    if shape[::-1] != new_unpad:  # resize
+    if shape[::-1] != new_unpad:  # Yeniden boyutlandır
         img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
     top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
     left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
+    img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # Çerçeve ekle
     return img, ratio, (dw, dh)
 
 
